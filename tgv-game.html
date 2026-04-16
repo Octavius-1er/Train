@@ -3,169 +3,168 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>TGV INOUI — Simulateur</title>
+<title>TGV INOUI \u2014 Simulateur</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
-  canvas { display: block; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { width:100%; height:100%; overflow:hidden; background:#000; touch-action:none; }
+canvas { display:block; position:fixed; top:0; left:0; }
 
-  #hud {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; color: white;
-  }
+/* \u2500\u2500 HUD \u2500\u2500 */
+#hud { position:fixed; inset:0; pointer-events:none; }
 
-  /* Speedometer */
-  #speedo-wrap {
-    position: absolute; bottom: 20px; right: 16px;
-    display: flex; flex-direction: column; align-items: center;
-  }
-  #speedo-canvas { filter: drop-shadow(0 0 10px rgba(255,80,0,0.6)); }
-  #speed-label { margin-top: 3px; font-size: 9px; letter-spacing: 3px; color: #ff6a00; text-transform: uppercase; }
+#topbar {
+  position:absolute; top:0; left:0; right:0;
+  padding:14px 18px 30px;
+  background:linear-gradient(to bottom,rgba(0,0,0,.75),transparent);
+  display:flex; justify-content:space-between; align-items:flex-start;
+}
+#logo { font-family:'Courier New',monospace; font-size:18px; font-weight:bold;
+        letter-spacing:5px; color:#fff; text-shadow:0 0 18px rgba(255,90,0,.9); }
+#logo b { color:#ff4500; }
+#distbox { text-align:right; line-height:1.3; }
+#dist-val  { font-family:'Courier New',monospace; font-size:26px; font-weight:bold; color:#fff; }
+#dist-unit { font-family:'Courier New',monospace; font-size:9px; color:#aaa; letter-spacing:2px; }
 
-  /* Top bar */
-  #topbar {
-    position: absolute; top: 0; left: 0; right: 0;
-    padding: 12px 16px;
-    display: flex; justify-content: space-between; align-items: center;
-    background: linear-gradient(to bottom, rgba(0,0,0,0.75), transparent);
-  }
-  #logo { font-size: 17px; font-weight: bold; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px rgba(255,100,0,0.8); }
-  #logo span { color: #ff4500; }
-  #distance-box { text-align: right; line-height: 1.3; }
-  #distance-val { font-size: 22px; font-weight: bold; color: #fff; }
-  #distance-unit { font-size: 9px; color: #aaa; letter-spacing: 2px; }
+/* Station announce */
+#announce {
+  position:absolute; top:64px; left:50%; transform:translateX(-50%);
+  white-space:nowrap; opacity:0; transition:opacity .4s;
+  font-family:'Courier New',monospace; font-size:13px; letter-spacing:1px; color:#ffe066;
+  background:rgba(0,0,0,.6); border:1px solid rgba(255,220,0,.25);
+  padding:6px 18px; border-radius:4px; pointer-events:none;
+}
+#announce.show { opacity:1; }
 
-  /* Status */
-  #status {
-    position: absolute; top: 58px; left: 50%; transform: translateX(-50%);
-    padding: 5px 14px; border-radius: 4px;
-    background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.15);
-    font-size: 11px; letter-spacing: 1px; color: #ffd700;
-    transition: opacity 0.5s; white-space: nowrap;
-  }
+/* View toggle */
+#btn-view {
+  position:absolute; top:62px; right:16px;
+  font-family:'Courier New',monospace; font-size:10px; letter-spacing:2px;
+  text-transform:uppercase; color:#ff8800;
+  background:rgba(255,100,0,.15); border:1px solid rgba(255,100,0,.4);
+  padding:7px 13px; border-radius:4px; cursor:pointer;
+  pointer-events:all; -webkit-user-select:none; user-select:none;
+}
+#btn-view:active { background:rgba(255,100,0,.4); }
 
-  /* View toggle btn */
-  #view-btn {
-    position: absolute; top: 56px; right: 14px;
-    padding: 7px 12px; cursor: pointer; pointer-events: all;
-    background: rgba(255,69,0,0.2); border: 1px solid rgba(255,69,0,0.5);
-    color: #ff6a00; font-size: 10px; letter-spacing: 2px;
-    border-radius: 4px; text-transform: uppercase;
-    -webkit-user-select: none; user-select: none;
-  }
-  #view-btn:active { background: rgba(255,69,0,0.5); }
+/* Speedometer */
+#speedo-wrap {
+  position:absolute; bottom:18px; right:14px;
+  display:flex; flex-direction:column; align-items:center;
+  filter:drop-shadow(0 0 10px rgba(255,70,0,.5));
+}
+#spd-lbl { font-family:'Courier New',monospace; font-size:9px; letter-spacing:3px; color:#ff6600; margin-top:3px; }
 
-  /* Desktop hint */
-  #controls {
-    position: absolute; bottom: 20px; left: 16px;
-    font-size: 11px; color: rgba(255,255,255,0.42); line-height: 2.1;
-  }
-  #controls span { color: rgba(255,140,0,0.85); }
-  @media (max-width: 768px), (pointer: coarse) { #controls { display: none; } }
+/* Desktop keyboard hint */
+#kb-hint {
+  position:absolute; bottom:18px; left:16px;
+  font-family:'Courier New',monospace; font-size:11px;
+  color:rgba(255,255,255,.4); line-height:2.1;
+}
+#kb-hint em { font-style:normal; color:rgba(255,140,0,.8); }
+@media (pointer:coarse),(max-width:800px) { #kb-hint { display:none; } }
 
-  /* ─── MOBILE CONTROLS ──────────────────────────────────────── */
-  #mobile-controls {
-    display: none;
-    position: absolute; bottom: 0; left: 0; right: 0; height: 220px;
-    pointer-events: none;
-  }
-  @media (max-width: 900px), (pointer: coarse) { #mobile-controls { display: block; } }
+/* Speed vignette */
+#vignette {
+  position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,.7) 100%);
+  opacity:0; transition:opacity .3s;
+}
 
-  /* Left: joystick */
-  #look-zone {
-    position: absolute; left: 0; bottom: 0; width: 50%; height: 100%;
-    pointer-events: all;
-    display: flex; align-items: flex-end; padding: 0 0 28px 28px;
-  }
-  .joystick-base {
-    width: 110px; height: 110px; border-radius: 50%;
-    background: rgba(255,255,255,0.06);
-    border: 2px solid rgba(255,255,255,0.18);
-    position: relative; flex-shrink: 0;
-  }
-  .joystick-knob {
-    width: 48px; height: 48px; border-radius: 50%;
-    background: rgba(255,100,0,0.65); border: 2px solid rgba(255,150,0,0.9);
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    box-shadow: 0 0 14px rgba(255,80,0,0.5);
-  }
+/* \u2500\u2500 MOBILE CONTROLS \u2500\u2500 */
+#mobile-ui {
+  display:none;
+  position:absolute; bottom:0; left:0; right:0; height:210px;
+  pointer-events:none;
+}
+@media (pointer:coarse),(max-width:800px) { #mobile-ui { display:block; } }
 
-  /* Right: throttle buttons */
-  #throttle-zone {
-    position: absolute; right: 0; bottom: 0; width: 46%; height: 100%;
-    pointer-events: all;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: flex-end; padding-bottom: 24px; gap: 14px;
-  }
-  .throttle-btn {
-    width: 100px; height: 58px; border-radius: 14px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px; border: 2px solid rgba(255,255,255,0.2);
-    -webkit-user-select: none; user-select: none;
-    transition: background 0.1s;
-  }
-  #btn-accel { background: rgba(0,190,70,0.22); border-color: rgba(0,210,70,0.5); }
-  #btn-accel:active { background: rgba(0,210,70,0.48); }
-  #btn-brake { background: rgba(210,35,35,0.22); border-color: rgba(255,55,55,0.5); }
-  #btn-brake:active { background: rgba(255,55,55,0.48); }
+/* Left: throttle buttons */
+#left-ctrl {
+  position:absolute; left:0; bottom:0; width:46%; height:100%;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:flex-end; gap:12px; padding-bottom:24px;
+  pointer-events:all;
+}
+.mbtn {
+  width:110px; height:60px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; border:2px solid rgba(255,255,255,.18);
+  -webkit-user-select:none; user-select:none; transition:background .1s;
+}
+#mbtn-accel { background:rgba(0,200,80,.2); border-color:rgba(0,220,90,.45); }
+#mbtn-accel.pressed { background:rgba(0,220,90,.5); }
+#mbtn-brake { background:rgba(220,40,40,.2); border-color:rgba(255,60,60,.45); }
+#mbtn-brake.pressed { background:rgba(255,60,60,.5); }
 
-  /* Loading */
-  #loading {
-    position: fixed; inset: 0; z-index: 100; background: #080808;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 22px;
-  }
-  #loading-logo { font-size: 30px; font-weight: bold; letter-spacing: 8px; color: #fff; }
-  #loading-logo span { color: #ff4500; }
-  #loading-bar-wrap { width: 260px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
-  #loading-bar { height: 100%; width: 0%; background: #ff4500; transition: width 0.35s ease; }
-  #loading-text { font-size: 11px; color: #555; letter-spacing: 3px; }
+/* Right: camera drag zone */
+#right-ctrl {
+  position:absolute; right:0; bottom:0; width:46%; height:100%;
+  pointer-events:all;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:30px;
+}
+#cam-hint {
+  font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px;
+  color:rgba(255,255,255,.3); text-align:center; line-height:1.8;
+  pointer-events:none;
+}
+
+/* \u2500\u2500 LOADING \u2500\u2500 */
+#loading {
+  position:fixed; inset:0; z-index:100;
+  background:#070707;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;
+}
+.l-logo { font-family:'Courier New',monospace; font-size:28px; font-weight:bold;
+          letter-spacing:8px; color:#fff; }
+.l-logo b { color:#ff4500; }
+.l-track { width:260px; height:3px; background:rgba(255,255,255,.08); border-radius:2px; overflow:hidden; }
+.l-bar { height:100%; background:#ff4500; width:0; transition:width .3s; }
+.l-txt { font-family:'Courier New',monospace; font-size:11px; color:#444; letter-spacing:3px; }
 </style>
 </head>
 <body>
 
 <div id="loading">
-  <div id="loading-logo">TGV <span>INOUI</span></div>
-  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
-  <div id="loading-text">CHARGEMENT...</div>
+  <div class="l-logo">TGV <b>INOUI</b></div>
+  <div class="l-track"><div class="l-bar" id="lbar"></div></div>
+  <div class="l-txt" id="ltxt">CHARGEMENT\u2026</div>
 </div>
 
 <canvas id="c"></canvas>
 
 <div id="hud">
   <div id="topbar">
-    <div id="logo">TGV <span>INOUI</span></div>
-    <div id="distance-box">
-      <div id="distance-val">0.0</div>
-      <div id="distance-unit">km parcourus</div>
+    <div id="logo">TGV <b>INOUI</b></div>
+    <div id="distbox">
+      <div id="dist-val">0.0</div>
+      <div id="dist-unit">km parcourus</div>
     </div>
   </div>
 
-  <div id="status">⚡ En gare de Paris Gare de Lyon</div>
-  <button id="view-btn">Vue cabine</button>
+  <div id="announce"></div>
+  <button id="btn-view">Vue cabine</button>
+  <div id="vignette"></div>
 
-  <div id="controls">
-    <div><span>↑ W</span>  Accélérer</div>
-    <div><span>↓ S</span>  Freiner</div>
-    <div><span>← →</span>  Regarder</div>
-    <div><span>V</span>  Vue</div>
+  <div id="kb-hint">
+    <div><em>W / \u2191</em>  Acc\u00e9l\u00e9rer</div>
+    <div><em>S / \u2193</em>  Freiner</div>
+    <div><em>Glisser</em>  Cam\u00e9ra</div>
+    <div><em>V</em>  Vue</div>
   </div>
 
   <div id="speedo-wrap">
-    <canvas id="speedo-canvas" width="150" height="150"></canvas>
-    <div id="speed-label">km/h</div>
+    <canvas id="sc" width="150" height="150"></canvas>
+    <div id="spd-lbl">km/h</div>
   </div>
 
-  <div id="mobile-controls">
-    <div id="look-zone">
-      <div class="joystick-base" id="joy-base">
-        <div class="joystick-knob" id="joy-knob"></div>
-      </div>
+  <div id="mobile-ui">
+    <div id="left-ctrl">
+      <div class="mbtn" id="mbtn-accel">\u25b2</div>
+      <div class="mbtn" id="mbtn-brake">\u25bc</div>
     </div>
-    <div id="throttle-zone">
-      <div class="throttle-btn" id="btn-accel">▲</div>
-      <div class="throttle-btn" id="btn-brake">▼</div>
+    <div id="right-ctrl">
+      <div id="cam-hint">Glisser<br>cam\u00e9ra</div>
     </div>
   </div>
 </div>
@@ -173,386 +172,318 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
 <script>
-// ─── RENDERER ────────────────────────────────────────────────────────────────
+'use strict';
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  RENDERER
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const isMobile = window.matchMedia('(pointer:coarse)').matches || window.innerWidth <= 800;
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobile, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+renderer.shadowMap.enabled = !isMobile;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.1;
+renderer.toneMappingExposure = 1.15;
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x87ceeb, 0.0018);
-const camera = new THREE.PerspectiveCamera(65, 1, 0.5, 3000);
-let viewMode = 0;
+const DFOG = 0.0014;
+scene.fog = new THREE.FogExp2(0x9ecfe8, DFOG);
+
+const camera = new THREE.PerspectiveCamera(62, 1, 0.5, 3000);
+camera.position.set(0, 7, 30);
 
 function resize() {
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
+  renderer.setSize(innerWidth, innerHeight);
+  camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
 }
 resize();
 window.addEventListener('resize', resize);
 
-// ─── LIGHTING ─────────────────────────────────────────────────────────────────
-const sun = new THREE.DirectionalLight(0xffe8c0, 1.6);
-sun.position.set(200, 400, 100);
-sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-Object.assign(sun.shadow.camera, { near:1, far:1500, left:-300, right:300, top:300, bottom:-300 });
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  LIGHTING
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const sun = new THREE.DirectionalLight(0xfff0d0, 1.8);
+sun.position.set(300, 500, -100);
+sun.castShadow = !isMobile;
+if (!isMobile) {
+  sun.shadow.mapSize.set(1024, 1024);
+  Object.assign(sun.shadow.camera, {near:10, far:2000, left:-400, right:400, top:300, bottom:-300});
+}
 scene.add(sun);
-scene.add(new THREE.AmbientLight(0x4488bb, 0.5));
-scene.add(new THREE.HemisphereLight(0x87ceeb, 0x4a7c3f, 0.4));
+scene.add(new THREE.AmbientLight(0x6699cc, 0.6));
+scene.add(new THREE.HemisphereLight(0x9ecfe8, 0x5a8a3f, 0.45));
 
-// ─── SKY ──────────────────────────────────────────────────────────────────────
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  SKY
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 scene.add(new THREE.Mesh(
-  new THREE.SphereGeometry(2000, 16, 10),
+  new THREE.SphereGeometry(2500, 16, 10),
   new THREE.ShaderMaterial({
     side: THREE.BackSide,
-    uniforms: { top: { value: new THREE.Color(0x0077cc) }, bot: { value: new THREE.Color(0x87ceeb) } },
-    vertexShader: `varying vec3 p; void main(){ p=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader: `varying vec3 p; uniform vec3 top,bot; void main(){ gl_FragColor=vec4(mix(bot,top,clamp((p.y+200.0)/600.0,0.0,1.0)),1.0); }`
+    uniforms: { top:{value:new THREE.Color(0x1a6eb5)}, bot:{value:new THREE.Color(0x9ecfe8)} },
+    vertexShader: `varying vec3 p; void main(){ p=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader: `varying vec3 p; uniform vec3 top,bot;
+      void main(){ gl_FragColor=vec4(mix(bot,top,clamp((p.y+100.)/700.,0.,1.)),1.); }`
   })
 ));
 
-// ─── GROUND ───────────────────────────────────────────────────────────────────
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(4000, 4000),
-  new THREE.MeshLambertMaterial({ color: 0x4a7c3f })
+// Sun disc
+const sunDisc = new THREE.Mesh(
+  new THREE.CircleGeometry(60, 24),
+  new THREE.MeshBasicMaterial({ color:0xfffae0, transparent:true, opacity:0.9 })
 );
-ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+sunDisc.position.set(280, 480, -500);
+scene.add(sunDisc);
 
-// ─── MATERIALS ────────────────────────────────────────────────────────────────
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  GROUND \u2014 large tiled plane that follows the train
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const GROUND_SIZE = 5000;
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(GROUND_SIZE, GROUND_SIZE, 1, 1),
+  new THREE.MeshLambertMaterial({ color:0x5a8a3f })
+);
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  SHARED MATERIALS & GEOMETRIES
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 const M = {
-  rail:    new THREE.MeshStandardMaterial({ color:0x888888, metalness:0.9, roughness:0.3 }),
-  sleep:   new THREE.MeshLambertMaterial({ color:0x5a4a3a }),
-  ballast: new THREE.MeshLambertMaterial({ color:0x888070 }),
-  pole:    new THREE.MeshStandardMaterial({ color:0xaaaaaa, metalness:0.6, roughness:0.5 }),
-  wire:    new THREE.LineBasicMaterial({ color:0xcccccc }),
-  leaf1:   new THREE.MeshLambertMaterial({ color:0x2d6a2d }),
-  leaf2:   new THREE.MeshLambertMaterial({ color:0x1a4a1a }),
-  trunk:   new THREE.MeshLambertMaterial({ color:0x5c3d1e }),
-  wall:    new THREE.MeshLambertMaterial({ color:0xddccbb }),
-  roof:    new THREE.MeshLambertMaterial({ color:0x993333 }),
+  rail:    new THREE.MeshStandardMaterial({ color:0x999999, metalness:.95, roughness:.2 }),
+  sleep:   new THREE.MeshLambertMaterial ({ color:0x5a4030 }),
+  ballast: new THREE.MeshLambertMaterial ({ color:0x8a8070 }),
+  pole:    new THREE.MeshStandardMaterial({ color:0xbbbbbb, metalness:.7, roughness:.4 }),
+  wire:    new THREE.LineBasicMaterial   ({ color:0xdddddd }),
+  leaf1:   new THREE.MeshLambertMaterial ({ color:0x2a6420 }),
+  leaf2:   new THREE.MeshLambertMaterial ({ color:0x3a7a28 }),
+  leaf3:   new THREE.MeshLambertMaterial ({ color:0x4a6030 }),
+  trunk:   new THREE.MeshLambertMaterial ({ color:0x5a3c1c }),
+  wall:    new THREE.MeshLambertMaterial ({ color:0xe0d4c0 }),
+  roof:    new THREE.MeshLambertMaterial ({ color:0x884444 }),
+  platf:   new THREE.MeshLambertMaterial ({ color:0xc8c8c8 }),
+  platfEdge:new THREE.MeshLambertMaterial({ color:0xffdd00 }),
+  concrete:new THREE.MeshLambertMaterial ({ color:0xaaaaaa }),
+  glass:   new THREE.MeshLambertMaterial ({ color:0x88aabb, transparent:true, opacity:.55 }),
+  sign:    null // set when station sign texture built
 };
 
-// Shared geometries
+const SEG = 200; // track segment length in metres
 const G = {
-  rail:  new THREE.BoxGeometry(0.07, 0.12, 200),
-  sleep: new THREE.BoxGeometry(2.6, 0.2, 0.26),
-  ball:  new THREE.BoxGeometry(4.0, 0.18, 200),
-  pole:  new THREE.CylinderGeometry(0.05, 0.05, 6.5, 6),
-  arm:   new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6),
+  rail:  new THREE.BoxGeometry(0.07, 0.12, SEG),
+  sleep: new THREE.BoxGeometry(2.7, 0.22, 0.28),
+  ball:  new THREE.BoxGeometry(4.4, 0.2, SEG),
+  pole:  new THREE.CylinderGeometry(.05,.05,7,6),
+  arm:   new THREE.CylinderGeometry(.03,.03,1.8,5),
 };
 
-// ─── PROCEDURAL SCENERY ───────────────────────────────────────────────────────
-function seededRand(s) {
-  return () => { s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/0xffffffff; };
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  PROCEDURAL HELPERS
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+function rng(seed) {
+  let s = seed;
+  return ()=>{ s=(s*1664525+1013904223)&0xffffffff; return (s>>>0)/4294967295; };
 }
 
-function makeTree(x, z, h, type) {
+function makeTree(x, z, h, v) {
   const g = new THREE.Group();
-  const th = h*0.4, tr = h*0.04;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(tr*0.6,tr,th,6), M.trunk);
+  const th = h*.42, tr = h*.042;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(tr*.5,tr,th,6), M.trunk);
   trunk.position.y = th/2; g.add(trunk);
-  if (type===0) {
-    for (let i=0;i<3;i++) {
-      const c = new THREE.Mesh(new THREE.ConeGeometry(h*0.38*(1-i*0.25),h*0.45,7), M.leaf1);
-      c.position.y = th+i*h*0.2; g.add(c);
-    }
-  } else {
-    const cr = new THREE.Mesh(new THREE.SphereGeometry(h*0.3,7,6), M.leaf2);
-    cr.position.y = th+h*0.28; cr.scale.y=0.9; g.add(cr);
+  const lm = [M.leaf1, M.leaf2, M.leaf3][v%3];
+  if (v===0) { // pine
+    [.42,.32,.22].forEach((r,i)=>{
+      const c = new THREE.Mesh(new THREE.ConeGeometry(h*r, h*.48,7), lm);
+      c.position.y = th + i*h*.19; g.add(c);
+    });
+  } else { // deciduous
+    const cr = new THREE.Mesh(new THREE.SphereGeometry(h*.31,7,6), lm);
+    cr.position.y = th+h*.28; cr.scale.x=1+(.5-v*.1); cr.scale.z=.85; g.add(cr);
+    // extra small cluster
+    const cr2 = new THREE.Mesh(new THREE.SphereGeometry(h*.2,6,5), lm);
+    cr2.position.set(.4*h, th+h*.44, 0); g.add(cr2);
   }
   g.position.set(x,0,z); return g;
 }
 
-function makeHouse(x, z) {
+function makeHouse(x, z, r) {
   const g = new THREE.Group();
-  const b = new THREE.Mesh(new THREE.BoxGeometry(8,5,6), M.wall);
-  b.position.y=2.5; g.add(b);
-  const r = new THREE.Mesh(new THREE.ConeGeometry(6,3,4), M.roof);
-  r.position.y=6.5; r.rotation.y=Math.PI/4; g.add(r);
+  const w=6+r*6, d=5+r*5;
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w,4+r*3,d), M.wall);
+  b.position.y=(4+r*3)/2; g.add(b);
+  const rf = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.75,2.5+r,4), M.roof);
+  rf.position.y=4+r*3+1.2; rf.rotation.y=Math.PI/4; g.add(rf);
   g.position.set(x,0,z); return g;
 }
 
-const SEG=200, AHEAD=10, BEHIND=3;
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  TRACK SEGMENT GENERATION
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 const segments = new Map();
+const AHEAD=12, BEHIND=4;
 
 function makeSegment(idx) {
   const g = new THREE.Group();
-  const z0 = -idx*SEG - SEG/2;
+  const z0 = -idx*SEG - SEG/2; // centre Z of segment
 
-  // Ballast
+  // Ballast bed
   const ball = new THREE.Mesh(G.ball, M.ballast);
-  ball.position.set(0,0.09,z0); ball.receiveShadow=true; g.add(ball);
+  ball.position.set(0, .1, z0); ball.receiveShadow=true; g.add(ball);
 
   // Rails
   for (const s of [-1,1]) {
     const r = new THREE.Mesh(G.rail, M.rail);
-    r.position.set(s*0.7175,0.24,z0); g.add(r);
+    r.position.set(s*.7175, .28, z0); g.add(r);
   }
 
-  // Sleepers
-  for (let i=0; i<Math.floor(SEG/0.6); i++) {
-    const s = new THREE.Mesh(G.sleep, M.sleep);
-    s.position.set(0,0.15,-idx*SEG-i*0.6-0.3); s.receiveShadow=true; g.add(s);
+  // Sleepers every 0.65m
+  const nSleep = Math.floor(SEG/.65);
+  for (let i=0; i<nSleep; i++) {
+    const sl = new THREE.Mesh(G.sleep, M.sleep);
+    sl.position.set(0, .17, -idx*SEG - i*.65 - .3);
+    sl.receiveShadow=true; g.add(sl);
   }
 
-  // Catenary
-  const pc = Math.floor(SEG/60);
-  for (let i=0;i<=pc;i++) {
-    const zp = -idx*SEG - i*60;
+  // Catenary poles every 55m
+  const np = Math.floor(SEG/55);
+  for (let i=0; i<=np; i++) {
+    const zp = -idx*SEG - i*55;
     for (const s of [-1,1]) {
       const pole = new THREE.Mesh(G.pole, M.pole);
-      pole.position.set(s*3.2,3.25,zp); pole.castShadow=true; g.add(pole);
+      pole.position.set(s*3.4, 3.5, zp); pole.castShadow=!isMobile; g.add(pole);
       const arm = new THREE.Mesh(G.arm, M.pole);
-      arm.rotation.z=Math.PI/2; arm.position.set(s*2.5,6.5,zp); g.add(arm);
+      arm.rotation.z=Math.PI/2; arm.position.set(s*2.6, 7, zp); g.add(arm);
     }
-    if (i<pc) {
-      g.add(new THREE.Line(
-        new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(0,6.5,zp),
-          new THREE.Vector3(0,6.5,zp-60)
-        ]), M.wire
-      ));
+    // Overhead contact wire
+    if (i<np) {
+      // Slight sag in wire
+      const pts=[];
+      for (let t=0;t<=8;t++) {
+        const frac=t/8;
+        const sag = Math.sin(frac*Math.PI)*0.18; // catenary sag
+        pts.push(new THREE.Vector3(0, 7-sag, zp - frac*55));
+      }
+      g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), M.wire));
+      // Hangers every ~7m
+      for (let h=1;h<8;h++) {
+        const zh = zp - h*(55/8);
+        const sagH = Math.sin((h/8)*Math.PI)*0.18;
+        const hg = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 7-sagH, zh),
+            new THREE.Vector3(0, 7-sagH-0.5, zh)
+          ]), M.wire
+        );
+        g.add(hg);
+      }
     }
   }
 
-  // Trees & houses
-  const rng = seededRand(idx*1000);
-  for (let i=0;i<14+Math.floor(rng()*8);i++) {
-    const s = rng()>0.5?1:-1;
-    const t = makeTree(s*(8+rng()*35), -idx*SEG-rng()*SEG, 4+rng()*9, rng()>0.4?0:1);
-    t.castShadow=true; g.add(t);
+  // Greenery
+  const rand = rng(idx * 7919);
+  const nTrees = 18 + Math.floor(rand()*12);
+  for (let i=0; i<nTrees; i++) {
+    const side = rand()>.5?1:-1;
+    const dist = 9 + rand()*50;
+    const tz = -idx*SEG - rand()*SEG;
+    const h = 5 + rand()*12;
+    const t = makeTree(side*dist, tz, h, Math.floor(rand()*3));
+    t.castShadow=!isMobile; g.add(t);
   }
-  if (rng()>0.65) {
-    const s=rng()>0.5?1:-1;
-    g.add(makeHouse(s*(20+rng()*30), -idx*SEG-rng()*SEG));
+  // Occasional farmhouse
+  if (rand()>.6) {
+    const s = rand()>.5?1:-1;
+    const hz = -idx*SEG - rand()*SEG;
+    g.add(makeHouse(s*(22+rand()*40), hz, rand()));
+  }
+  // Power line poles on far side
+  if (rand()>.4) {
+    for (let i=0;i<3;i++) {
+      const zp2 = -idx*SEG - rand()*SEG;
+      const pl = new THREE.Mesh(
+        new THREE.CylinderGeometry(.04,.06,10,5),
+        M.pole
+      );
+      pl.position.set(rand()>.5?-60:-55, 5, zp2); g.add(pl);
+    }
   }
 
-  scene.add(g); segments.set(idx,g);
+  scene.add(g); segments.set(idx, g);
 }
 
-// ─── GAME STATE ───────────────────────────────────────────────────────────────
-const MAX_SPEED=320, ACCEL=18, BRAKE=40, FRICTION=3;
-let speed=0, distance=0, trainZ=0;
-const keys = {};
-let camLookX = 0;
-let tgvModel = null;
-
-// ─── MOBILE CONTROLS ─────────────────────────────────────────────────────────
-const mobileKeys = { accel:false, brake:false };
-let joyDx = 0, joyActive = false;
-const joyBase = document.getElementById('joy-base');
-const joyKnob = document.getElementById('joy-knob');
-const JR = 53;
-
-function updateJoy(touch) {
-  const rect = joyBase.getBoundingClientRect();
-  const cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
-  let dx = touch.clientX-cx, dy = touch.clientY-cy;
-  const d = Math.sqrt(dx*dx+dy*dy);
-  if (d>JR) { dx=dx/d*JR; dy=dy/d*JR; }
-  joyDx = dx/JR;
-  joyKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-}
-function joyEnd() {
-  joyActive=false; joyDx=0;
-  joyKnob.style.transform='translate(-50%, -50%)';
-}
-
-const lz = document.getElementById('look-zone');
-lz.addEventListener('touchstart', e=>{ joyActive=true; updateJoy(e.touches[0]); e.preventDefault(); }, {passive:false});
-lz.addEventListener('touchmove',  e=>{ if(joyActive) updateJoy(e.touches[0]); e.preventDefault(); }, {passive:false});
-lz.addEventListener('touchend',   joyEnd);
-lz.addEventListener('touchcancel',joyEnd);
-
-function bindBtn(id, key) {
-  const el = document.getElementById(id);
-  el.addEventListener('touchstart', e=>{ mobileKeys[key]=true; e.preventDefault(); }, {passive:false});
-  el.addEventListener('touchend',   ()=> mobileKeys[key]=false);
-  el.addEventListener('touchcancel',()=> mobileKeys[key]=false);
-}
-bindBtn('btn-accel','accel');
-bindBtn('btn-brake','brake');
-
-// ─── KEYBOARD ─────────────────────────────────────────────────────────────────
-document.addEventListener('keydown', e => { keys[e.code]=true; if(e.code==='KeyV') toggleView(); });
-document.addEventListener('keyup',   e => keys[e.code]=false);
-
-function toggleView() {
-  viewMode=(viewMode+1)%2;
-  document.getElementById('view-btn').textContent = viewMode===0 ? 'Vue cabine' : 'Vue arrière';
-}
-document.getElementById('view-btn').addEventListener('click', toggleView);
-document.getElementById('view-btn').addEventListener('touchend', e=>{ toggleView(); e.preventDefault(); }, {passive:false});
-
-// ─── STATIONS ─────────────────────────────────────────────────────────────────
-const STATIONS=[
-  {dist:0,   name:'Paris Gare de Lyon'},
-  {dist:4.5, name:'Melun'},
-  {dist:35,  name:'Montereau'},
-  {dist:80,  name:'Sens'},
-  {dist:130, name:'Auxerre'},
-  {dist:195, name:'Dijon'},
-  {dist:290, name:'Chalon-sur-Saône'},
-  {dist:345, name:'Mâcon'},
-  {dist:400, name:'Lyon Part-Dieu'},
-  {dist:480, name:'Valence TGV'},
-  {dist:580, name:'Avignon TGV'},
-  {dist:640, name:'Aix-en-Provence TGV'},
-  {dist:670, name:'Marseille Saint-Charles'},
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+//  STATION BUILDINGS
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+const STATIONS = [
+  { dist:0,   name:'Paris Gare de Lyon'    },
+  { dist:4.5, name:'Melun'                 },
+  { dist:35,  name:'Montereau'             },
+  { dist:80,  name:'Sens'                  },
+  { dist:130, name:'Auxerre'               },
+  { dist:195, name:'Dijon'                 },
+  { dist:290, name:'Chalon-sur-Sa\u00f4ne'      },
+  { dist:345, name:'M\u00e2con'                 },
+  { dist:400, name:'Lyon Part-Dieu'        },
+  { dist:480, name:'Valence TGV'           },
+  { dist:580, name:'Avignon TGV'           },
+  { dist:640, name:'Aix-en-Provence TGV'   },
+  { dist:670, name:'Marseille Saint-Charles'},
 ];
-let nextSt=1, statusTO=null;
-function showStatus(msg, dur=4000) {
-  const el=document.getElementById('status');
-  el.textContent=msg; el.style.opacity='1';
-  if(statusTO) clearTimeout(statusTO);
-  statusTO=setTimeout(()=> el.style.opacity='0', dur);
+
+function makeSignTexture(name) {
+  const cv = document.createElement('canvas');
+  cv.width=512; cv.height=128;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle='#00318a'; ctx.fillRect(0,0,512,128);
+  ctx.strokeStyle='#c8a000'; ctx.lineWidth=4;
+  ctx.strokeRect(4,4,504,120);
+  ctx.fillStyle='#ffffff';
+  const fs = name.length > 18 ? 36 : 46;
+  ctx.font = `bold ${fs}px Arial,sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(name,256,68);
+  return new THREE.CanvasTexture(cv);
 }
 
-// ─── SPEEDOMETER ──────────────────────────────────────────────────────────────
-const sc=document.getElementById('speedo-canvas').getContext('2d');
-const SR=60, SCX=75, SCY=80;
-function drawSpeedo(spd) {
-  sc.clearRect(0,0,150,150);
-  sc.beginPath(); sc.arc(SCX,SCY,SR,0,Math.PI*2);
-  sc.fillStyle='rgba(0,0,0,0.75)'; sc.fill();
-  sc.strokeStyle='#ff4500'; sc.lineWidth=2; sc.stroke();
-  for (let v=0;v<=320;v+=40) {
-    const a=Math.PI*0.75+(v/320)*Math.PI*1.5;
-    sc.beginPath();
-    sc.moveTo(SCX+Math.cos(a)*(SR-5), SCY+Math.sin(a)*(SR-5));
-    sc.lineTo(SCX+Math.cos(a)*(SR-12), SCY+Math.sin(a)*(SR-12));
-    sc.strokeStyle=v>=300?'#ff2200':'#777'; sc.lineWidth=v%80===0?2:1; sc.stroke();
-    if (v%80===0) {
-      sc.fillStyle='#999'; sc.font='8px monospace'; sc.textAlign='center';
-      sc.fillText(v, SCX+Math.cos(a)*(SR-20), SCY+Math.sin(a)*(SR-20)+3);
+function buildStation(name, worldZ) {
+  const g = new THREE.Group();
+  const PLEN = 420, PWID = 5.5, PHGT = 0.92;
+
+  // Platforms (both sides of track)
+  for (const side of [-1,1]) {
+    const platX = side * (0.7175 + .5 + PWID/2 + .4);
+
+    // Concrete platform body
+    const plat = new THREE.Mesh(new THREE.BoxGeometry(PWID, PHGT, PLEN), M.platf);
+    plat.position.set(platX, PHGT/2, worldZ);
+    plat.receiveShadow=true; g.add(plat);
+
+    // Yellow safety stripe
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(.08, .025, PLEN), M.platfEdge);
+    stripe.position.set(platX - side*(PWID/2-.08), PHGT+.012, worldZ);
+    g.add(stripe);
+
+    // Tactile paving strip (dark yellow)
+    const tact = new THREE.Mesh(new THREE.BoxGeometry(.5, .025, PLEN),
+      new THREE.MeshLambertMaterial({color:0xddbb00}));
+    tact.position.set(platX - side*(PWID/2-.45), PHGT+.012, worldZ);
+    g.add(tact);
+  }
+
+  // Canopy pillars + glass roof
+  const pillarH = 5.2, canopyW = 14;
+  const NSPAN = Math.floor(PLEN / 14);
+  for (let i=0; i<NSPAN; i++) {
+    const cz = worldZ - PLEN/2 + (i+.5)*14;
+    for (const side of [-1,1]) {
+      const pillar = new THREE.Mesh(
+        new THREE.BoxGeometry(.18, pillarH, .18),
+        new THREE.MeshStandardMaterial({color:0x888888,metalness:.8,roughness:.3})
+      );
+      pillar.position.set(side*6.5, pillarH/2, cz);
+      pillar.castShadow=!isMobile; g.add(pillar);
     }
-  }
-  const sa=Math.PI*0.75, ea=sa+(spd/320)*Math.PI*1.5;
-  sc.beginPath(); sc.arc(SCX,SCY,SR-8,sa,ea);
-  const gr=sc.createLinearGradient(SCX-SR,SCY,SCX+SR,SCY);
-  gr.addColorStop(0,'#00cc44'); gr.addColorStop(0.6,'#ff8800'); gr.addColorStop(1,'#ff0000');
-  sc.strokeStyle=gr; sc.lineWidth=4; sc.stroke();
-  const na=sa+(spd/320)*Math.PI*1.5;
-  sc.beginPath(); sc.moveTo(SCX,SCY);
-  sc.lineTo(SCX+Math.cos(na)*(SR-13), SCY+Math.sin(na)*(SR-13));
-  sc.strokeStyle='#fff'; sc.lineWidth=2; sc.stroke();
-  sc.beginPath(); sc.arc(SCX,SCY,4,0,Math.PI*2); sc.fillStyle='#ff4500'; sc.fill();
-  sc.fillStyle='#fff'; sc.font='bold 22px monospace'; sc.textAlign='center';
-  sc.fillText(Math.round(spd), SCX, SCY+24);
-}
-
-// ─── LOAD MODEL ───────────────────────────────────────────────────────────────
-const loadBar  = document.getElementById('loading-bar');
-const loadText = document.getElementById('loading-text');
-function setLoad(pct, msg) { loadBar.style.width=pct+'%'; if(msg) loadText.textContent=msg; }
-
-setLoad(10, 'CHARGEMENT DU MODÈLE 3D...');
-const clock = new THREE.Clock(false);
-
-new THREE.ColladaLoader().load(
-  'model.dae',
-  (col) => {
-    setLoad(85, 'OPTIMISATION...');
-    tgvModel = col.scene;
-    tgvModel.scale.setScalar(0.0254); // inches → metres
-    const box = new THREE.Box3().setFromObject(tgvModel);
-    const center = box.getCenter(new THREE.Vector3());
-    tgvModel.position.set(-center.x, -box.min.y, -center.z);
-    tgvModel.rotation.y = Math.PI / 2;
-    scene.add(tgvModel);
-    setLoad(100, 'PRÊT !');
-    setTimeout(() => {
-      document.getElementById('loading').style.display = 'none';
-      showStatus('⚡ En gare de Paris Gare de Lyon — Appuyez sur ▲ pour démarrer', 7000);
-      clock.start(); animate();
-    }, 300);
-  },
-  (xhr) => { if(xhr.total) setLoad(10+(xhr.loaded/xhr.total)*70); },
-  () => {
-    setLoad(100, 'model.dae introuvable — mode simplifié');
-    setTimeout(() => {
-      document.getElementById('loading').style.display='none';
-      showStatus('⚠️ Placez model.dae dans le même dossier que le HTML', 9000);
-      clock.start(); animate();
-    }, 1500);
-  }
-);
-
-// ─── GAME LOOP ────────────────────────────────────────────────────────────────
-function animate() {
-  requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.05);
-
-  const accel = keys['ArrowUp']   || keys['KeyW'] || mobileKeys.accel;
-  const brake = keys['ArrowDown'] || keys['KeyS'] || mobileKeys.brake;
-  const lookL = keys['ArrowLeft'] || keys['KeyA'];
-  const lookR = keys['ArrowRight']|| keys['KeyD'];
-
-  if (accel)      speed = Math.min(speed + ACCEL*dt, MAX_SPEED);
-  else if (brake) speed = Math.max(speed - BRAKE*dt, 0);
-  else            speed = Math.max(speed - FRICTION*dt, 0);
-
-  // Look: joystick overrides keys
-  let targetLook = 0;
-  if (lookL) targetLook = 1.4;
-  if (lookR) targetLook = -1.4;
-  if (joyActive) targetLook = -joyDx * 1.4;
-  camLookX += (targetLook - camLookX) * 8 * dt;
-
-  // Move
-  const ms = speed / 3.6;
-  trainZ -= ms * dt;
-  distance += ms * dt / 1000;
-  ground.position.z = trainZ;
-  sun.position.z = trainZ;
-  if (tgvModel) tgvModel.position.z = trainZ;
-
-  // Manage track segments
-  const cur = Math.floor(-trainZ / SEG);
-  for (let i=cur-BEHIND; i<=cur+AHEAD; i++) if (!segments.has(i)) makeSegment(i);
-  for (const [idx, grp] of segments) {
-    if (idx < cur-BEHIND-2 || idx > cur+AHEAD+2) {
-      scene.remove(grp);
-      grp.traverse(o => { if(o.geometry) o.geometry.dispose(); });
-      segments.delete(idx);
-    }
-  }
-
-  // Camera
-  if (viewMode===0) {
-    // Chase
-    camera.position.x += (Math.sin(camLookX)*4 - camera.position.x)*0.07;
-    camera.position.y += (7 - camera.position.y)*0.07;
-    camera.position.z += (trainZ+28 - camera.position.z)*0.07;
-    camera.lookAt(Math.sin(camLookX)*80, 4, trainZ-60);
-  } else {
-    // Cab
-    camera.position.x += (Math.sin(camLookX)*0.5 - camera.position.x)*0.15;
-    camera.position.y += (4.5 - camera.position.y)*0.15;
-    camera.position.z += (trainZ-2 - camera.position.z)*0.15;
-    camera.lookAt(Math.sin(camLookX)*150, 4, trainZ-500);
-  }
-
-  // Stations
-  if (nextSt < STATIONS.length) {
-    const d = STATIONS[nextSt].dist - distance;
-    if (d<=0) { showStatus(`🚉 Arrêt en gare de ${STATIONS[nextSt].name}`); nextSt++; }
-    else if (d<2&&d>1.95) showStatus(`📢 Prochain arrêt : ${STATIONS[nextSt].name}`);
-  }
-
-  document.getElementById('distance-val').textContent = distance.toFixed(1);
-  drawSpeedo(speed);
-  renderer.render(scene, camera);
-}
-
-// Init
-for (let i=-1; i<=5; i++) makeSegment(i);
-drawSpeedo(0);
-</script>
-</body>
-</html>
+    // Roof panel (glass)
+    const panel = new THREE.Mesh(new THREE.BoxGeometry(canopyW, .12, 
